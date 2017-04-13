@@ -1,0 +1,42 @@
+#!/bin/env bash
+
+set -euo pipefail
+IFS=$'\n\t'
+
+readonly PROGNAME=$(basename $0)
+readonly PROGDIR=$(readlink -m $(dirname $0))
+
+source "${PROGDIR}/shared.sh"
+
+main() {
+	local use_defaults=0
+	local frmcmp=
+	local connection=
+	local params=
+
+	setup_env ${use_defaults}
+
+	local dir="$1"
+	local lib_name="$(basename $dir)"
+	local output_file="dist/${lib_name}.pld"
+
+	mkdir -p "${dir}/dist"
+	cd "${dir}"
+
+	rm -f "$output_file" "${output_file%.*}.pll"
+
+	sed -nr 's/(\.attach .*)/printf "\1"/ep' "META-PLL" >> "$output_file"
+	printf "\n" >> "$output_file"
+	sed -nr 's/\.include (.*)/cat "\1"/ep' "META-PLL" >> "$output_file"
+	sed -i.bak 's/xfrm[\.|_]//gI' "$output_file"
+	sed -i.bak 's/create or replace \(package\)/\1/gI' "$output_file"
+	sed -i.bak 's/create or replace \(procedure\)/\1/gI' "$output_file"
+
+	rm -f "${output_file}.bak"
+	chmod -w "$output_file"
+
+	${frmcmp} ${connection} ${params[@]} module="${output_file}" output_file="${output_file%.*}.pll" module_type=library parse=yes
+	chmod -w "${output_file%.*}.pll"
+}
+
+main $@
