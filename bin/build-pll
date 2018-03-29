@@ -1,4 +1,8 @@
-#!/bin/env bash
+#!/usr/bin/env bash
+
+# Copyright (c) 2018 Paweł Kierzkowski
+# License: MIT
+# Home: https://github.com/4O4/crossforms
 
 set -euo pipefail
 IFS=$'\n\t'
@@ -9,7 +13,7 @@ readonly PROGDIR=$(readlink -m $(dirname $0))
 source "${PROGDIR}/shared.sh"
 
 main() {
-	local use_defaults=0
+	local use_defaults=${2:-"0"}
 	local frmcmp=
 	local connection=
 	local params=
